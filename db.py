@@ -1,6 +1,36 @@
-import boto3
 import datetime
+import typing
 import uuid
+
+from flask import current_app
+
+if typing.TYPE_CHECKING:
+    from boto3.dynamodb import ServiceResource
+
+
+def create_main_table(dynamodb: "ServiceResource"):
+    try:
+        dynamodb.create_table(
+            TableName=current_app.config['MAIN_TABLE_NAME'],
+            KeySchema=[
+                {
+                    'AttributeName': 'ticket_id',
+                    'KeyType': 'HASH'
+                },
+            ],
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'ticket_id',
+                    'AttributeType': 'S'
+                },
+            ],
+            ProvisionedThroughput={
+                'ReadCapacityUnits': 1,
+                'WriteCapacityUnits': 1,
+            },
+        )
+    except dynamodb.exception.ResourceInUseException:
+        pass
 
 
 class Ticket():
@@ -46,3 +76,4 @@ class Ticket():
         time = time.seconds / 60
         time = time // 15
         return time * 2.5
+
