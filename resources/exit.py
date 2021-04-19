@@ -29,7 +29,7 @@ class Exit(Resource):
             {
                 "plate": ticket.plate,
                 "parkingLot": ticket.parking_lot,
-                "totalParkingTime": (ticket.exit_time - ticket.entry_time).seconds // 60 + 1,
+                "totalParkingTime": ticket.get_total_time(),
                 "charge": ticket.get_price(),
             },
             200,

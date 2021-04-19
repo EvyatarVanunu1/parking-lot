@@ -79,11 +79,16 @@ class Ticket:
             "exit_time": self.exit_time.isoformat() if self.exit_time else None,
         }
 
+    def get_total_time(self):
+        if not self.exit_time:
+            raise RuntimeError("exit is not set")
+
+        return (self.exit_time - self.entry_time).seconds // 60 + 1
+
     def get_price(self):
         if not self.exit_time:
             raise RuntimeError("exit is not set")
 
-        time = self.exit_time - self.entry_time
-        time = time.seconds / 60
-        time = time // 15 + 1
+        time = self.get_total_time()
+        time = time // 15
         return time * 2.5
