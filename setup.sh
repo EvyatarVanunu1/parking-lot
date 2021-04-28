@@ -54,7 +54,9 @@ PUBLIC_IP=$(aws ec2 describe-instances  --instance-ids $INSTANCE_ID |
 echo "New instance $INSTANCE_ID @ $PUBLIC_IP"
 
 echo "deploying config file to production"
+/bin/bash create_aws_env.sh
 scp -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=60" aws_env_file ubuntu@$PUBLIC_IP:/home/ubuntu/
+rm aws_env_file
 
 echo "setup production environment"
 ssh -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=10" ubuntu@$PUBLIC_IP <<EOF
