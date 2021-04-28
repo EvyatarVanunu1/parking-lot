@@ -5,11 +5,8 @@ import uuid
 import pytz
 from flask import current_app
 
-if typing.TYPE_CHECKING:
-    from boto3.dynamodb import ServiceResource
 
-
-def create_main_table(dynamodb: "ServiceResource"):
+def create_main_table(dynamodb):
     try:
         dynamodb.create_table(
             TableName=current_app.config["MAIN_TABLE_NAME"],
@@ -24,7 +21,7 @@ def create_main_table(dynamodb: "ServiceResource"):
                 "WriteCapacityUnits": 1,
             },
         )
-    except dynamodb.exception.ResourceInUseException:
+    except dynamodb.exceptions.ResourceInUseException:
         pass
 
 
@@ -46,7 +43,6 @@ class Ticket:
     @classmethod
     def deserialize(cls, data):
         properties = [
-            data.get("ticket_id"),
             data.get("parking_lot"),
             data.get("plate"),
             data.get("entry_time"),
@@ -57,7 +53,7 @@ class Ticket:
         if is_valid:
             exit_time = data.get("exit_time")
             return Ticket(
-                ticket_id=uuid.UUID(data["ticket_id"]),
+                ticket_id=uuid.UUID(data.get("ticket_id")) if data.get("ticket_id") else None,
                 parking_lot=data["parking_lot"],
                 plate=data["plate"],
                 entry_time=datetime.datetime.fromisoformat(data["entry_time"]),
@@ -68,7 +64,7 @@ class Ticket:
 
     @classmethod
     def validate_str(cls, value, is_optional=False):
-        return (isinstance(value, str) and value) or (value is None and is_optional)
+        return ((isinstance(value, str) and value is not None) or (value is None and is_optional))
 
     def serialize(self):
         return {
@@ -90,5 +86,5 @@ class Ticket:
             raise RuntimeError("exit is not set")
 
         time = self.get_total_time()
-        time = time // 15
+        time = time // 15 + 1
         return time * 2.5

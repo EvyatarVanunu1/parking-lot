@@ -21,10 +21,15 @@ class Exit(Resource):
         response = table.get_item(Key={"ticket_id": ticket_id})
 
         if not response.get("Item"):
-            return {"msg": "ticketId not found"}
+            return {"msg": "ticketId not found"}, 400
+
+        if response["Item"].get("exit_time"):
+            return {"msg": "ticket invalid. car already checked out"}, 400
 
         ticket = Ticket.deserialize(data=response.get("Item"))
-        ticket.exit_time = datetime.datetime.now(tz=pytz.utc)
+        ticket.exit_time = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+        table.put_item(Item=ticket.serialize())
+
         return (
             {
                 "plate": ticket.plate,

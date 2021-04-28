@@ -10,14 +10,13 @@ from db import Ticket
 class Entry(Resource):
     def post(self):
 
-        plate = request.args.get("plate")
-        parking_lot = request.args.get("parkingLot")
-
-        ticket = Ticket(
-            plate=plate,
-            parking_lot=parking_lot,
-            entry_time=datetime.datetime.now(),
+        data = dict(
+            plate=request.args.get("plate"),
+            parking_lot=request.args.get("parkingLot"),
+            entry_time=datetime.datetime.utcnow().isoformat(),
         )
+
+        ticket = Ticket.deserialize(data=data)
 
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table(current_app.config["MAIN_TABLE_NAME"])
