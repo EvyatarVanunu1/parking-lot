@@ -55,18 +55,18 @@ echo "New instance $INSTANCE_ID @ $PUBLIC_IP"
 
 echo "deploying config file to production"
 /bin/bash create_aws_env.sh
-scp -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=60" aws_env_file ubuntu@$PUBLIC_IP:/home/ubuntu/
+scp -i $KEY_PEM -o "IdentitiesOnly=yes" -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=60" aws_env_file ubuntu@$PUBLIC_IP:/home/ubuntu/
 rm aws_env_file
 
 echo "setup production environment"
-ssh -i $KEY_PEM -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=10" ubuntu@$PUBLIC_IP <<EOF
+ssh -i $KEY_PEM -o "IdentitiesOnly=yes" -o "StrictHostKeyChecking=no" -o "ConnectionAttempts=10" ubuntu@$PUBLIC_IP <<EOF
     sudo apt update
     sudo apt install git -y
     sudo apt install docker.io -y
     sudo git clone https://github.com/EvyatarVanunu1/parking-lot.git
     cd parking-lot
     sudo docker build -t parking-lot .
-    sudo docker run --env-file ~/aws_env_file -p 80:80 parking-lot
+    sudo docker run --env-file ~/aws_env_file -p 80:80 -d parking-lot
     exit
 EOF
 
